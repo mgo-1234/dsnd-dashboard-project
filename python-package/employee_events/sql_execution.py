@@ -1,60 +1,43 @@
+from __future__ import annotations
+
 from sqlite3 import connect
 from pathlib import Path
 from functools import wraps
 import pandas as pd
 
-# Using pathlib, create a `db_path` variable
-# that points to the absolute path for the `employee_events.db` file
+# Absolute path to the packaged SQLite DB
 db_path = Path(__file__).resolve().parent / "employee_events.db"
 
 
 # OPTION 1: MIXIN
-# Define a class called `QueryMixin`
 class QueryMixin:
-     """Provides helper methods for executing SQL queries."""
-    
-    # Define a method named `pandas_query`
-    # that receives an sql query as a string
-    # and returns the query's result
-    # as a pandas dataframe
+    """Provides helper methods for executing SQL queries."""
+
     def pandas_query(self, sql_query: str) -> pd.DataFrame:
-        """
-        Execute the SQL query and return a pandas DataFrame.
-        """
+        """Execute the SQL query and return a pandas DataFrame."""
         with connect(db_path) as conn:
-            df = pd.read_sql_query(sql_query, conn)
-        return df
+            return pd.read_sql_query(sql_query, conn)
 
-    # Define a method named `query`
-    # that receives an sql_query as a string
-    # and returns the query's result as
-    # a list of tuples. (You will need
-    # to use an sqlite3 cursor)
     def query(self, sql_query: str):
-        """
-        Execute the SQL query and return a list of tuples.
-        """
+        """Execute the SQL query and return a list of tuples."""
         with connect(db_path) as conn:
-            cursor = conn.cursor()
-            result = cursor.execute(sql_query).fetchall()
-        return result
-    
+            cur = conn.cursor()
+            rows = cur.execute(sql_query).fetchall()
+        return rows
 
- 
- # Leave this code unchanged
+
+# OPTION 2: DECORATOR (available if you want to use it)
 def query(func):
-    """
-    Decorator that runs a standard sql execution
-    and returns a list of tuples
-    """
-
+    """Decorator that runs a standard SQL execution and returns a list of tuples."""
     @wraps(func)
     def run_query(*args, **kwargs):
-        query_string = func(*args, **kwargs)
-        connection = connect(db_path)
-        cursor = connection.cursor()
-        result = cursor.execute(query_string).fetchall()
-        connection.close()
-        return result
-    
+        sql = func(*args, **kwargs)
+        with connect(db_path) as conn:
+            cur = conn.cursor()
+            rows = cur.execute(sql).fetchall()
+        return rows
     return run_query
+
+
+# Backwards-compat alias: some modules import SQLiteMixin
+SQLiteMixin = QueryMixin

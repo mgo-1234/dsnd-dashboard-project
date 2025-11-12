@@ -55,6 +55,10 @@ class Employee(QueryBase):
         """
         rows = self.run_sql(sql)
         return [(r["note"], r["note_date"]) for r in rows]
+        
+    # For the dropdown: return (name, id) pairs
+    def employee_events(self, entity_id=None, model=None):
+        return self.names()
 
     # ML features: return a pandas DataFrame with positive/negative sums
     def model_data(self, id):

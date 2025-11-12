@@ -1,12 +1,14 @@
 # Import any dependencies needed to execute sql queries
 from __future__ import annotations
-from .sql_execution import SQLiteMixin
+from .sql_execution import QueryMixin
 import pandas as pd
 
 # Define a class called QueryBase
 # Use inheritance to add methods
 # for querying the employee_events database.
-class QueryBase(SQLiteMixin):
+class QueryBase(QueryMixin):
+    """Base query class: exposes run_sql/pandas_query to subclasses."""
+    pass
 
     # Create a class attribute called `name`
     # set the attribute to an empty string

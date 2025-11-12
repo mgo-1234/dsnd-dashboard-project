@@ -113,7 +113,7 @@ class LineChart(MatplotlibViz):
         # the border color and font color to black. 
         # Reference the base_components/matplotlib_viz file 
         # to inspect the supported keyword arguments
-        self.set_axis_styling(ax, border_color='black', font_color='black')
+        self.set_axis_styling(ax)
 
         # Set title and labels for x and y axis
         ax.set_title('Cumulative Events Over Time')
@@ -173,7 +173,7 @@ class BarChart(MatplotlibViz):
         # pass the axis variable
         # to the `.set_axis_styling`
         # method
-        self.set_axis_styling(ax, border_color='black', font_color='black')
+        self.set_axis_styling(ax)
 
         return fig, ax
  
@@ -193,14 +193,17 @@ class Visualizations(CombinedComponent):
 # Create a subclass of base_components/DataTable
 # called `NotesTable`
 class NotesTable(DataTable):
-
-    # Overwrite the `component_data` method
-    # using the same parameters as the parent class
     def component_data(self, entity_id, model):
-        # Using the model and entity_id arguments
-        # pass the entity_id to the model's .notes 
-        # method. Return the output
-        return model.notes(entity_id)
+        rows = model.notes(entity_id)  # list of (note, note_date) OR list of dicts
+        # Normalize to a DataFrame for DataTable
+        if isinstance(rows, list):
+            if rows and isinstance(rows[0], dict):
+                return pd.DataFrame(rows)
+            else:
+                # list of tuples -> give column names
+                return pd.DataFrame(rows, columns=["note", "note_date"])
+        return rows  # already a DataFrame
+
 
 
 class DashboardFilters(FormGroup):

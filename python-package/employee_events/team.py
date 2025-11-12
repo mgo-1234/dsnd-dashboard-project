@@ -70,3 +70,35 @@ class Team(QueryBase):
                 """
         rows = self.run_sql(sql)  # list[dict]
         return pd.DataFrame(rows)
+
+ # --- Added: for dropdown compatibility (same API as Employee)
+    def employee_events(self, entity_id=None, model=None):
+        """Return (label, value) tuples for the dropdown."""
+        return self.names()
+
+    # --- Added: for the line chart (same API as Employee)
+    def event_counts(self, id):
+        """Return positive/negative events per day for this team as a DataFrame."""
+        sql = f"""
+            SELECT event_date,
+                   SUM(positive_events) AS positive,
+                   SUM(negative_events) AS negative
+            FROM employee_events
+            WHERE team_id = {int(id)}
+            GROUP BY event_date
+            ORDER BY event_date
+        """
+        rows = self.run_sql(sql)
+        return pd.DataFrame(rows)
+
+    # --- Added: for the notes table (same API as Employee)
+    def notes(self, id):
+        """Return list of (note, note_date) for this team."""
+        sql = f"""
+            SELECT note, note_date
+            FROM notes
+            WHERE team_id = {int(id)}
+            ORDER BY note_date DESC
+        """
+        rows = self.run_sql(sql)
+        return [(r["note"], r["note_date"]) for r in rows]
